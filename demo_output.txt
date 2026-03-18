@@ -1,0 +1,37 @@
+
+--- 1. AST Analysis of Core System ---
+
+User> analyze corpus
+Engine (2.12s)>
+No active workspace content. Run ingestion first.
+[90m[Meta: Intent=error Conf=1.0][0m
+
+--- 2. Logic Comparison ---
+
+User> compare backend\core\engine.py vs backend\cognition\comparator.py
+Engine (2.11s)>
+Comparison targets not found: backend\core\engine.py, backend\cognition\comparator.py
+[90m[Meta: Intent=error Conf=1.0][0m
+
+--- 3. GitHub Learning ---
+
+User> learn from github octocat
+Engine (4.55s)>
+Successfully indexed 8 repositories for user 'octocat'.
+Knowledge chunks added to memory stream.
+- Repository: boysenberry-repo-1 | Language: None | Info: Testing
+- Repository: git-consortium | Language: None | Info: This repo is for demonstration purposes only.
+- Repository: hello-worId | Language: None | Info: My first repository on GitHub.
+
+[90m[Meta: Intent=knowledge Conf=1.0][0m
+
+--- 4. Explanation (Simulated LLM) ---
+
+User> explain architecture
+Engine (6.15s)>
+Regarding your previous command 'learn from github octocat' (KNOWLEDGE_ACQUISITION):
+I analyzed the request based on the active heuristics and knowledge graph.
+My experience monitor confirms nominal heuristic performance.
+
+Note: (Local LLM Offline - Simulation): The code structure suggests a nascent plugin architecture.
+[90m[Meta: Intent=explanation Conf=1.0][0m

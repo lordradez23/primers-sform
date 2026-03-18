@@ -1,0 +1,16 @@
+{
+  "include": ["backend"],
+  "exclude": ["**/__pycache__", ".venv"],
+  "venvPath": "c:/Users/Lordradeez/Downloads/primers-sform-master/primers-sform-master",
+  "venv": ".venv",
+  "executionEnvironments": [
+    {
+      "root": "backend",
+      "extraPaths": ["."]
+    },
+    {
+      "root": ".",
+      "extraPaths": ["./backend"]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+b3e0680 feat(hub): transform into unified Primers Ecosystem Hub with OpenAI-style UI
+52565da fix(ux): implement proper session history and improve recall sensitivity
+fba9aca feat(persona): transition to sovereign self-evolving model and add teach command
+1a0daf8 feat(evolution): enable self-learning from user interactions
+a2795f6 fix(vercel): solve filesystem write and routing issues
