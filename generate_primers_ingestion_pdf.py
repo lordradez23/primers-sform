@@ -24,11 +24,11 @@ sections = {
 ],
 
 "2. Core Ecosystem Projects": [
-"PrimerGPT – Multi-model AI intelligence platform for strategic reasoning, cybersecurity analysis, and business intelligence.",
-"Primers OS – Security-focused operating system environment for AI research, OSINT, and advanced computing.",
-"PulseScanner – Live OSINT monitoring system detecting dark web signals and threat intelligence.",
-"PhantomDrop – Deception-based OSINT tracking system deploying bait artifacts to monitor attacker behavior.",
-"SecureLink – Web/mobile geolocation emergency system with real-time alerts and community safety infrastructure."
+"PrimerGPT  Multi-model AI intelligence platform for strategic reasoning, cybersecurity analysis, and business intelligence.",
+"Primers OS  Security-focused operating system environment for AI research, OSINT, and advanced computing.",
+"PulseScanner  Live OSINT monitoring system detecting dark web signals and threat intelligence.",
+"PhantomDrop  Deception-based OSINT tracking system deploying bait artifacts to monitor attacker behavior.",
+"SecureLink  Web/mobile geolocation emergency system with real-time alerts and community safety infrastructure."
 ],
 
 "3. Intelligence Personality Framework": [

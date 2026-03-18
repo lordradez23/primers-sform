@@ -60,7 +60,7 @@ class LocalLLMConnector:
         except Exception as e:
             print(f"LLM Chat Error: {e}")
 
-        # 🧠 SYMBOLIC INTELLIGENCE (LLM-OFFLINE REASONING)
+        #  SYMBOLIC INTELLIGENCE (LLM-OFFLINE REASONING)
         query = message.lower()
         
         # SELF-EVOLUTION: Prioritize learned context if passed in

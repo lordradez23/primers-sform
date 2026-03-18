@@ -112,7 +112,7 @@ class ExecutiveInsights:
         
     def _calculate_pdm(self, risk_nodes: Dict) -> float:
         """
-        V4 Financial Engine (Hardened): PDM = 1 + (Σ w_i * A_i / Σ w_i)
+        V4 Financial Engine (Hardened): PDM = 1 + ( w_i * A_i /  w_i)
         Uses Weighted Mean to prevent inflation from ecosystem size.
         """
         if not risk_nodes: return 1.0
@@ -132,8 +132,8 @@ class ExecutiveInsights:
         top_k = max(1, min(len(sorted_amps), 10)) # Top 10 hotspots
         concentration_risk = sum(sorted_amps[:top_k]) / top_k
         
-        # PDM = 1 + (α * concentration_risk)
-        # α = 2.0 (scaling factor for senior engineer overhead / incident probability)
+        # PDM = 1 + ( * concentration_risk)
+        #  = 2.0 (scaling factor for senior engineer overhead / incident probability)
         pdm = 1.0 + (2.0 * concentration_risk)
             
         return min(3.5, pdm)

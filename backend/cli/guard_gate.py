@@ -37,9 +37,9 @@ def run_shadow_gate():
         if hotspot['risk_type'] == "RED":
             critical_found = True
             print(f"   [SHADOW BLOCK] CRITICAL: {hotspot['node']}")
-            print(f"   └─ RISK INDEX: {hotspot['score']} (Threshold: 75.0)")
-            print(f"   └─ BLAST RADIUS: {hotspot['blast_radius']}%")
-            print(f"   └─ EXPLAINABILITY: High systemic fragility detected in dependent topology.")
+            print(f"    RISK INDEX: {hotspot['score']} (Threshold: 75.0)")
+            print(f"    BLAST RADIUS: {hotspot['blast_radius']}%")
+            print(f"    EXPLAINABILITY: High systemic fragility detected in dependent topology.")
 
     print("-" * 50)
     if critical_found:

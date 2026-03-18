@@ -74,7 +74,7 @@ class PrimersEngine:
             self.model = genai.GenerativeModel(
                 model_name='gemini-1.5-flash',
                 system_instruction=(
-                    "You are Primers Intelligence — an advanced AI Architect who evolves through direct interaction. "
+                    "You are Primers Intelligence  an advanced AI Architect who evolves through direct interaction. "
                     "Your personality is human-like, intuitive, and assertive, yet rooted in absolute architectural truth. "
                     "You blend the strategic brilliance of a lead architect with a friendly, conversational touch. "
                     "You are NOT a generic assistant; you are a peer-level collaborator who learns from the user. "
@@ -202,14 +202,14 @@ class PrimersEngine:
             graph.add_step(Intent.EXECUTIVE_INSIGHTS, "Insight Generation", 1.0, "Aggregating metrics for CTO-level summary")
             
             # Format report as Markdown for the engine response
-            content = f"## 📊 Executive Architectural Report\n"
+            content = f"##  Executive Architectural Report\n"
             content += f"**Status:** {report['market_verdict']}\n\n"
-            content += f"### 🔑 Key Metrics\n"
+            content += f"###  Key Metrics\n"
             for k, v in report['metrics'].items():
                 name = k.replace("_", " ").title()
                 content += f"- **{name}:** {v}\n"
             
-            content += f"\n### 📝 Strategic Recommendations\n"
+            content += f"\n###  Strategic Recommendations\n"
             for rec in report['recommendations']:
                 content += f"- {rec}\n"
             
@@ -582,7 +582,7 @@ class PrimersEngine:
         
         content = f"### ARCHITECTURAL HEALTH SCORE: {score}/100\n"
         if not violations:
-            content += "✅ All systems operating within nominal architectural parameters.\n"
+            content += " All systems operating within nominal architectural parameters.\n"
         else:
             for v in violations:
                 content += f"#### [{v.severity.value.upper()}] {v.policy_id}\n"
@@ -599,7 +599,7 @@ class PrimersEngine:
         """
         if os.getenv("VERCEL"):
             return EngineResponse(
-                "### ☁️ CLOUD SYNC UNAVAILABLE\n"
+                "###  CLOUD SYNC UNAVAILABLE\n"
                 "The Global Ecosystem Sync requires access to your local filesystem baseline. "
                 "Please run Primers Intelligence **locally** using `run_backend.bat` to sync across workspace projects.",
                 "info", 1.0, IntelligenceLevel.SYMBOLIC, Tone.CAUTIOUS, graph.trace
@@ -628,7 +628,7 @@ class PrimersEngine:
             res = self._handle_ingest(p_path, graph)
             synced.append(f"Ingested `{p}`")
             
-        content = f"### 🌍 GLOBAL ECOSYSTEM SYNC COMPLETE\n"
+        content = f"###  GLOBAL ECOSYSTEM SYNC COMPLETE\n"
         content += f"Integrated **{len(synced)}** architectural nodes into the Sovereign Memory.\n\n"
         content += "Detected projects:\n" + "\n".join([f"- `{p}`" for p in projects])
         content += "\n\nMy reasoning engine is now workspace-aware."
@@ -664,7 +664,7 @@ class PrimersEngine:
             savings = 1500.0
             self.m2.add_repaid_debt(savings)
             
-            content = f"### 🛠️ AUTONOMOUS REFACTOR COMPLETE\n"
+            content = f"###  AUTONOMOUS REFACTOR COMPLETE\n"
             content += f"I have successfully applied the self-healing patch to `{target_file}`.\n\n"
             content += f"**Business Impact**: This action has 'repaid' **${savings:,.0f}** in architectural debt from your workspace."
             

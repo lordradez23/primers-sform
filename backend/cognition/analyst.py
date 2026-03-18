@@ -1,5 +1,5 @@
 
-# 🔹 PRIMERS REPOSITORY INTELLIGENCE
+#  PRIMERS REPOSITORY INTELLIGENCE
 # --------------------------------
 # Provides semantic search and analysis for local/remote codebases.
 
