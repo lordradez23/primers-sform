@@ -1,7 +1,7 @@
 {
   "complexity_heuristic": {
-    "uses": 57,
-    "avg_confidence": 0.7999999999999995,
+    "uses": 103,
+    "avg_confidence": 0.7999999999999985,
     "success_rate": 1.0
   }
 }

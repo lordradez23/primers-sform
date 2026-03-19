@@ -14,117 +14,143 @@ interface AvatarProps {
 
 const Avatar: React.FC<AvatarProps> = ({ isTyping, isResponding, mousePos, isIdle, emotion = 'neutral', hasAlert }) => {
     const [mounted, setMounted] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const springProps = { type: "spring", stiffness: 150, damping: 15, mass: 0.8 } as const;
+    const springProps = { type: "spring", stiffness: 120, damping: 12, mass: 0.8 } as const;
     const isWorking = isIdle && !isTyping && !isResponding;
+
+    const [relativePos, setRelativePos] = useState({ x: 0.5, y: 0.5, distance: 1000 });
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Localize mouse position to the Avatar container
+    useEffect(() => {
+        if (!mounted || !containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const dx = mousePos.x - centerX;
+        const dy = mousePos.y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Normalized relative position (-1 to 1)
+        setRelativePos({
+            x: dx / (window.innerWidth / 2),
+            y: dy / (window.innerHeight / 2),
+            distance
+        });
+    }, [mousePos, mounted]);
+
+    const proximity = useMemo(() => {
+        return Math.max(0, 1 - relativePos.distance / 300); // 1.0 at center, 0 at 300px
+    }, [relativePos.distance]);
 
     const browPaths = {
         neutral: { L: "M25 38 Q 35 38 43 38", R: "M75 38 Q 65 38 57 38" },
-        serious: { L: "M25 40 Q 35 35 43 32", R: "M75 40 Q 65 35 57 32" },
-        cautious: { L: "M25 32 Q 35 35 43 40", R: "M75 32 Q 65 35 57 40" },
-        calm: { L: "M25 36 Q 35 34 43 36", R: "M75 36 Q 65 34 57 36" },
-        curious: { L: "M25 32 Q 35 28 43 32", R: "M75 35 Q 65 38 57 42" },
-        analytical: { L: "M25 35 Q 35 30 43 35", R: "M75 35 Q 65 30 57 35" }
+        serious: { L: "M25 38 Q 35 37 43 36", R: "M75 38 Q 65 37 57 36" }, // Flat, less aggressive
+        cautious: { L: "M25 34 Q 35 35 43 38", R: "M75 34 Q 65 35 57 38" }, // Softened
+        analytical: { L: "M25 36 Q 35 34 43 36", R: "M75 36 Q 65 34 57 36" } // Less steep slant
     };
 
     const activeEmotion = useMemo(() => {
-        if (isTyping) return 'curious';
+        if (isTyping) return 'analytical';
+        if (proximity > 0.6) return 'serious'; // Looks intensely when close
         if (hasAlert && isWorking) return 'serious';
         return emotion;
-    }, [isTyping, hasAlert, isWorking, emotion]);
+    }, [isTyping, hasAlert, isWorking, emotion, proximity]);
 
     const currentBrows = (browPaths as any)[activeEmotion] || browPaths.neutral;
 
     const glowColor = useMemo(() => {
+        if (proximity > 0.8) return '#ff0000'; // Pure Red when hyper-close
         switch (activeEmotion) {
-            case 'serious': return '#ff4d4d'; // Vivid Red
-            case 'calm': return '#00f2ff';    // Electric Cyan
-            case 'analytical': return '#bd00ff'; // Neon Purple
-            case 'curious': return '#ffae00';  // Bright Orange
-            case 'cautious': return '#fbff00'; // Pure Yellow
+            case 'serious': return '#ff4d4d';
+            case 'analytical': return '#bd00ff';
             default: return '#ffffff';
         }
-    }, [activeEmotion]);
+    }, [activeEmotion, proximity]);
 
+    const parallax = useMemo(() => {
+        if (!mounted) return { head: {}, eyes: {}, pupils: {} };
+        
+        // Base targets
+        let targetX = relativePos.x;
+        let targetY = relativePos.y;
+
+        // "Idle" floating if not interacting
+        if (isWorking && proximity < 0.2) {
+            targetX = Math.sin(Date.now() * 0.001) * 0.05;
+            targetY = -0.1;
+        }
+
+        // Proximity amplification: moves more intensely as cursor nears
+        const amp = 1 + proximity * 1.5;
+
+        return {
+            head: { 
+                x: targetX * 5 * amp, 
+                y: targetY * 5 * amp, 
+                rotateX: -targetY * 15 * amp, 
+                rotateY: targetX * 15 * amp 
+            },
+            eyes: { x: targetX * 10 * amp, y: targetY * 10 * amp },
+            pupils: { x: targetX * 12 * amp, y: targetY * 12 * amp } // Faster pupil tracking
+        };
+    }, [relativePos, isWorking, proximity, mounted]);
+
+    // Background Data Rain Effect (unchanged logic, refactored for readability)
     useEffect(() => {
         if (!isWorking || !canvasRef.current) return;
-
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
         let animationFrame: number;
         const particles: any[] = [];
-        const codeSnips = ["def audit():", "mem_alloc", "ptr->0x7f", "std::move", "async {", "011010", "node.relink()"];
+        const codeSnips = ["def audit():", "ptr->0x7f", "async {", "relink()"];
 
-        const resize = () => {
-            canvas.width = 160;
-            canvas.height = 160;
-        };
-        resize();
+        canvas.width = 160;
+        canvas.height = 160;
 
         class HackingParticle {
-            x: number; y: number; speed: number; char: string; opacity: number;
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.speed = 0.5 + Math.random() * 2;
-                this.char = codeSnips[Math.floor(Math.random() * codeSnips.length)];
-                this.opacity = 0;
-            }
-            draw(color: string) {
+            x = Math.random() * 160;
+            y = Math.random() * 160;
+            speed = 0.5 + Math.random() * 2;
+            char = codeSnips[Math.floor(Math.random() * codeSnips.length)];
+            opacity = 0;
+
+            draw() {
                 if (!ctx) return;
-                const r = parseInt(color.slice(1, 3), 16);
-                const g = parseInt(color.slice(3, 5), 16);
-                const b = parseInt(color.slice(5, 7), 16);
-                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${this.opacity})`;
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
                 ctx.font = '6px monospace';
                 ctx.fillText(this.char, this.x, this.y);
                 this.y -= this.speed;
-                this.opacity = Math.sin(Date.now() * 0.005 + this.x) * 0.3;
-                if (this.y < -10) { this.y = canvas.height + 10; this.x = Math.random() * canvas.width; }
+                this.opacity = Math.sin(Date.now() * 0.005 + this.x) * 0.2;
+                if (this.y < -10) this.y = 170;
             }
         }
 
-        for (let i = 0; i < 15; i++) particles.push(new HackingParticle());
-
+        for (let i = 0; i < 10; i++) particles.push(new HackingParticle());
         const animate = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => p.draw(glowColor));
+            ctx.clearRect(0, 0, 160, 160);
+            particles.forEach(p => p.draw());
             animationFrame = requestAnimationFrame(animate);
         };
         animate();
-
         return () => cancelAnimationFrame(animationFrame);
-    }, [isWorking, glowColor]);
+    }, [isWorking]);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    const parallax = useMemo(() => {
-        if (!mounted || typeof window === 'undefined') return { head: {}, eyes: {}, pupils: {} };
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        const dx = (mousePos.x - centerX) / (centerX || 1);
-        const dy = (mousePos.y - centerY) / (centerY || 1);
-
-        const targetX = isWorking ? Math.sin(Date.now() * 0.001) * 0.05 : dx;
-        const targetY = isWorking ? -0.1 : dy;
-
-        return {
-            head: { x: targetX * 4, y: targetY * 4, rotateX: -targetY * 10, rotateY: targetX * 10 },
-            eyes: { x: targetX * 8, y: targetY * 8 },
-            pupils: { x: targetX * 4, y: targetY * 4 }
-        };
-    }, [mousePos, isWorking]);
+    const isHovered = relativePos.distance < 40;
 
     return (
-        <div className="relative [perspective:1000px] w-40 h-40">
+        <div ref={containerRef} className="relative [perspective:1000px] w-40 h-40">
             {/* Background Data Rain */}
             <canvas
                 ref={canvasRef}
-                className={`absolute top-0 left-0 pointer-events-none z-0 transition-opacity duration-1000 ${isWorking ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute top-0 left-0 pointer-events-none z-0 transition-opacity duration-1000 ${isWorking ? 'opacity-40' : 'opacity-0'}`}
                 style={{ width: '160px', height: '160px' }}
             />
 
@@ -132,12 +158,16 @@ const Avatar: React.FC<AvatarProps> = ({ isTyping, isResponding, mousePos, isIdl
                 viewBox="0 0 100 100"
                 className="w-full h-full relative z-10"
                 initial={false}
-                animate={parallax.head}
-                transition={springProps}
+                animate={{
+                    ...parallax.head,
+                    scale: isHovered ? [1, 1.02, 0.99, 1] : 1, // Subtle glitch pulse
+                    filter: isHovered ? `drop-shadow(0 0 8px ${glowColor})` : 'none'
+                }}
+                transition={isHovered ? { duration: 0.1, repeat: Infinity } : springProps}
             >
                 <defs>
-                    <filter id="celestial-glow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="2.5" result="blur" />
+                    <filter id="eye-glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation={1 + proximity * 2} result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
 
@@ -148,36 +178,22 @@ const Avatar: React.FC<AvatarProps> = ({ isTyping, isResponding, mousePos, isIdl
                     </radialGradient>
                 </defs>
 
-                {/* HUD Elements */}
-                <AnimatePresence>
-                    {isWorking && (
-                        <motion.g initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
-                            <motion.circle
-                                cx="50" cy="50" r="48"
-                                fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.2"
-                                strokeDasharray="5,10"
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                            />
-                        </motion.g>
-                    )}
-                </AnimatePresence>
-
                 {/* Main Head Form */}
                 <path
                     d="M50 10 C 20 10 15 40 15 60 C 15 85 35 95 50 95 C 65 95 85 85 85 60 C 85 40 80 10 50 10"
                     fill="url(#soulGradient)"
-                    stroke="rgba(255, 255, 255, 0.08)"
-                    strokeWidth="0.5"
+                    stroke={glowColor}
+                    strokeWidth={0.2 + proximity * 0.5}
+                    style={{ transition: 'stroke 0.3s ease' }}
                 />
 
-                {/* Brows Section */}
-                <motion.g animate={{ opacity: (isWorking && !hasAlert) ? 0 : 1 }}>
+                {/* Brows */}
+                <motion.g initial={false} animate={{ opacity: isWorking ? 0.3 : 1 }}>
                     <motion.path
                         d={currentBrows.L}
                         fill="none"
-                        stroke="rgba(255,255,255,0.2)"
-                        strokeWidth="1"
+                        stroke="rgba(255,255,255,0.4)"
+                        strokeWidth="1.2"
                         strokeLinecap="round"
                         animate={{ d: currentBrows.L }}
                         transition={springProps}
@@ -185,79 +201,64 @@ const Avatar: React.FC<AvatarProps> = ({ isTyping, isResponding, mousePos, isIdl
                     <motion.path
                         d={currentBrows.R}
                         fill="none"
-                        stroke="rgba(255,255,255,0.2)"
-                        strokeWidth="1"
+                        stroke="rgba(255,255,255,0.4)"
+                        strokeWidth="1.2"
                         strokeLinecap="round"
                         animate={{ d: currentBrows.R }}
                         transition={springProps}
                     />
                 </motion.g>
 
-                {/* Eyes/Intent Layer */}
+                {/* Eyes Section */}
                 <motion.g animate={parallax.eyes} transition={springProps}>
+                    {/* Left Eye */}
                     <g transform="translate(35, 45)">
-                        <circle r="8" fill="rgba(0,0,0,0.8)" />
+                        <circle r="8" fill="rgba(0,0,0,0.9)" />
                         <motion.circle
-                            r={isWorking ? 1.5 : (emotion === 'cautious' ? 2 : 3)}
-                            fill={isWorking ? "#fff" : glowColor}
-                            style={{ filter: 'url(#celestial-glow)' }}
-                            animate={(isWorking || emotion === 'serious') ? { opacity: [0.4, 1, 0.4], scale: [1, 1.2, 1] } : { opacity: 1 }}
-                            transition={{ duration: 0.5, repeat: Infinity }}
+                            animate={parallax.pupils}
+                            r={isHovered ? 3.5 : (2 + proximity * 1.2)} // Reduced proximity amplification
+                            fill={glowColor}
+                            style={{ filter: 'url(#eye-glow)' }}
+                            transition={springProps}
                         />
                     </g>
+                    {/* Right Eye */}
                     <g transform="translate(65, 45)">
-                        <circle r="8" fill="rgba(0,0,0,0.8)" />
+                        <circle r="8" fill="rgba(0,0,0,0.9)" />
                         <motion.circle
-                            r={isWorking ? 1.5 : (emotion === 'cautious' ? 2 : 3)}
-                            fill={isWorking ? "#fff" : glowColor}
-                            style={{ filter: 'url(#celestial-glow)' }}
-                            animate={(isWorking || emotion === 'serious') ? { opacity: [0.4, 1, 0.4], scale: [1, 1.2, 1] } : { opacity: 1 }}
-                            transition={{ duration: 0.5, repeat: Infinity, delay: 0.2 }}
+                            animate={parallax.pupils}
+                            r={isHovered ? 3.5 : (2 + proximity * 1.2)} // Reduced proximity amplification
+                            fill={glowColor}
+                            style={{ filter: 'url(#eye-glow)' }}
+                            transition={springProps}
                         />
                     </g>
                 </motion.g>
 
-                {/* Cognitive Mouth */}
+                {/* Interactive Mouth */}
                 <motion.path
-                    d={isWorking ? "M42 75 Q 50 73 58 75" : "M35 75 Q 50 76 65 75"}
+                    d={isHovered ? "M40 78 Q 50 82 60 78" : "M42 75 Q 50 76 58 75"}
                     fill="none"
-                    stroke={(isResponding || isWorking) ? "#fff" : "rgba(255,255,255,0.2)"}
-                    strokeWidth={(isResponding || isWorking) ? 1.5 : 0.8}
+                    stroke={isResponding ? "#fff" : "rgba(255,255,255,0.3)"}
+                    strokeWidth={isResponding ? 2 : 1}
                     animate={{
-                        opacity: (isWorking || isResponding) ? [0.5, 1, 0.5] : 1,
-                        d: isWorking ? "M42 75 Q 50 73 58 75" : isResponding ? "M30 75 Q 50 85 70 75" : "M35 75 Q 50 76 65 75"
+                        d: isHovered ? "M40 78 Q 50 82 60 78" : isResponding ? "M30 75 Q 50 85 70 75" : "M42 75 Q 50 76 58 75",
+                        opacity: isResponding ? [0.5, 1, 0.5] : 1
                     }}
-                    transition={{ duration: 1, repeat: Infinity }}
+                    transition={{ duration: 0.5 }}
                 />
 
-                {/* Empathy/Aura Pulse */}
+                {/* Aura Pulse */}
                 <motion.circle
-                    cx="50" cy="50" r="45"
+                    cx="50" cy="50" r="46"
                     fill="none"
                     stroke={glowColor}
-                    strokeWidth="0.5"
-                    initial={{ scale: 0.9, opacity: 0 }}
+                    strokeWidth={0.1 + proximity * 0.8}
                     animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.1, 0.4, 0.1],
-                        strokeWidth: [0.1, 0.8, 0.1]
+                        scale: isHovered ? [1, 1.05, 1] : [1, 1.02, 1],
+                        opacity: [0.1, 0.2 + proximity * 0.3, 0.1]
                     }}
-                    transition={{
-                        duration: emotion === 'serious' ? 1.5 : 4,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                    style={{ filter: 'blur(2px)' }}
-                />
-
-                {/* Secondary Outer Aura */}
-                <motion.circle
-                    cx="50" cy="50" r="48"
-                    fill="none"
-                    stroke={glowColor}
-                    strokeWidth="0.1"
-                    animate={{ opacity: [0, 0.2, 0] }}
-                    transition={{ duration: 6, repeat: Infinity, delay: 1 }}
+                    transition={{ duration: 2, repeat: Infinity }}
                 />
             </motion.svg>
         </div>
