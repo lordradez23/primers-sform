@@ -157,13 +157,18 @@ const Avatar: React.FC<AvatarProps> = ({ isTyping, isResponding, mousePos, isIdl
             <motion.svg
                 viewBox="0 0 100 100"
                 className="w-full h-full relative z-10"
-                initial={false}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{
                     ...parallax.head,
+                    opacity: 1,
                     scale: isHovered ? [1, 1.02, 0.99, 1] : 1, // Subtle glitch pulse
                     filter: isHovered ? `drop-shadow(0 0 8px ${glowColor})` : 'none'
                 }}
-                transition={isHovered ? { duration: 0.1, repeat: Infinity } : springProps}
+                transition={{
+                    opacity: { duration: 0.8, ease: "easeOut" },
+                    scale: { duration: 0.5, ease: "easeOut" },
+                    default: isHovered ? { duration: 0.1, repeat: Infinity } : springProps
+                }}
             >
                 <defs>
                     <filter id="eye-glow" x="-50%" y="-50%" width="200%" height="200%">
