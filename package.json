@@ -3,6 +3,8 @@
   "version": "3.0.0",
   "private": true,
   "scripts": {
+    "dev": "npm run dev:frontend",
+    "dev:all": "start npm run dev:frontend & start npm run dev:backend",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "run_backend.bat",
     "build:frontend": "cd frontend && npm run build",
